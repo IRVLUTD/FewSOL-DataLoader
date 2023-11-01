@@ -10,14 +10,14 @@ sys.path.insert(0, os.getcwd())
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-from  FewSOLDataLoader import (
+from src.FewSOLDataLoader import (
     load_fewsol_dataloader
 )
 
 """Test FewSOl dataloader."""
 def main():
     # Load the FewSOL dataloader for the 'real_objects' and 'synthetic_objects' split
-    splits = ['real_clutter' ,'real_objects', 'synthetic_objects', 'google_clutter']
+    splits = ['google_clutter', 'real_objects', 'synthetic_objects', 'real_clutter']
     for s in splits:
         test_split(s)
 
@@ -45,24 +45,22 @@ def test_split(s):
     idx = random.randint(0, len(test) - 1)
 
     # Retrieve data from the dataloader for the random index
-    image_data, semantic_data, bounding_data, label, questionnaire, file_name = test[idx]
+    image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test[idx]
     
-    rand_obj_idx = 0
+    # Picks a random object index in the image
+    rand_obj_idx = random.randint(0, len(label) - 1)
+    label = label[rand_obj_idx]
+    if questionnaire != None:
+        questionnaire = questionnaire[rand_obj_idx]
+       
     modified_sem = None
     # Creates the segementation for all the available objects
     # Each object has a different id corresponding to it's index
     if s == "real_clutter" or s == "google_clutter":
-        rand_obj_idx = random.randint(0, len(label) - 1)
-        label = label[rand_obj_idx]
-        
-        if questionnaire != None:
-            questionnaire = questionnaire[rand_obj_idx]
-        
         modified_sem = np.zeros((semantic_data.shape[2], semantic_data.shape[3]))
         for i in range(semantic_data.shape[1]):
             modified_sem[semantic_data[0,i] == 1] = i + 1
-    else:
-        label = label[0]
+
         
 
     # Convert data to numpy arrays and adjust data types
@@ -109,6 +107,11 @@ def test_split(s):
     axs[1, 1].set_title('Label + Questionnaire')
     axs[1, 1].axis('off')
 
+    if poses != None:
+        print(f"{s} POSE: ", poses[0, rand_obj_idx])
+    else:
+        print(f"{s} POSE: ", poses)
+    
     # Adjust spacing between subplots
     plt.tight_layout()
 

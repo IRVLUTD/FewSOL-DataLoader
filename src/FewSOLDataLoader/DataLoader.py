@@ -8,30 +8,35 @@ from torch.utils.data import Dataset
 import scipy.io as scp
 import json
 
+from .SingleRealPose import compute_marker_board_center
+
 # Input Shape
 # n x m x q x w x h
-# n = Number of total unique objects
+# n = Number of total images
 # q = 3 : Color slots for RGB
 # w = Width of the Image
 # h = Height of the image
 
 # Semantic Label Output Shape
 # n x m x w x h
-# n = Number of total unique objects
+# n = Number of total images
 # m = Total number of objects in the current images
 # w = Width of the Image
 # h = Height of the image
 
 # Detection Bounds Output Shape
 # n x m x r
-# n = Number of total unique objects
+# n = Number of total images
 # m = Total number of objects in the current images
 # r = 4 : x, y, width, height
 
 # Label Output/Description Shape
-# 1 Object, no list
-# or
 # m = Total number of objects in the images
+
+# Pose Information
+# n x m x 4 x 4
+# n = Number of total images
+# m = Total number of objects in the current images
 
 
 LABEL_FILE_NAME = "name.txt"
@@ -94,6 +99,8 @@ class FewSOLDataloader(Dataset):
         bounding_data = torch.tensor(
             np.zeros((1, 1, 4), dtype=np.float64)
         )
+        poses = torch.zeros(1, 1, 4, 4)
+        
 
         color_file_name = self._getColorFromIdx(idx)
         
@@ -120,10 +127,15 @@ class FewSOLDataloader(Dataset):
         # Loads mat file
         mat_file = self._getMatFromIdx(idx)
         mat_data = scp.loadmat(mat_file)
-        
-        # print(mat_data)
 
-        return img_data, semantic_data, bounding_data, label, questionnaire, color_file_name
+        
+        if "object_poses" in mat_data:
+            poses[0] = torch.Tensor(mat_data["object_poses"].squeeze())
+        elif "joint_position" in mat_data:
+            mat_data = compute_marker_board_center(mat_data)
+            poses[0] = torch.Tensor(mat_data["center"])  
+
+        return img_data, semantic_data, bounding_data, label, questionnaire, color_file_name, poses
 
     def _getColorFromIdx(self, idx: int):
         return f"{self.objects[idx]}-color.jpg"
@@ -370,6 +382,8 @@ class RealClutterDataLoader(Dataset):
         bounding_data = torch.tensor(
             np.zeros((1, self.OBJ_COUNT, 4), dtype=np.float64)
         )
+        # OCID does not contain poses
+        poses = None
         
         # The last object in the sequence has the complete image
         color_file = self._getFiles(idx, self.OBJ_COUNT)[0]
@@ -401,11 +415,7 @@ class RealClutterDataLoader(Dataset):
                         
             # Loads segmentation label from mat file  
             matData = scp.loadmat(mat_file)
-            """
-            if obj_i == 0: 
-                print(matData)
-            """
-                        
+                           
             # Creates a 1 and 0 segmentation array
             objectID = matData["object_id"][0,0]
             semantic_data[0, obj_i] = torch.tensor(matData["label"])
@@ -415,7 +425,7 @@ class RealClutterDataLoader(Dataset):
             right, left, bottom, top = calculateBoundBox(semantic_data[0, obj_i])
             bounding_data[0, obj_i] = torch.tensor([bottom, right, top - bottom, left - right,])
         
-        return img_data, semantic_data, bounding_data, label, descriptions, color_file
+        return img_data, semantic_data, bounding_data, label, descriptions, color_file, poses
     
     # This returns the mat and color file
     def _getFiles(self, seq_num, obj_num):
@@ -516,7 +526,7 @@ class GooogleClutterDataloader(Dataset):
         
         # Loads mat file
         mat_data = scp.loadmat(mat_file)
-        # print(mat_data)
+        
         # Gets google object name
         object_names = [x.strip() for x in mat_data["object_names"]]
         # Gets accurate label names from syntetic dataset
@@ -540,6 +550,7 @@ class GooogleClutterDataloader(Dataset):
         bounding_data = torch.tensor(
             np.zeros((1, len(object_names), 4), dtype=np.float64)
         )
+        poses = torch.zeros((1, len(object_names), 4, 4))
         
         for i in range(len(object_names)):
             # Loads segmentation label
@@ -558,8 +569,11 @@ class GooogleClutterDataloader(Dataset):
 
             right, left, bottom, top = calculateBoundBox(semantic_data[0,i])
             bounding_data[0, i] = torch.tensor([bottom, right, top - bottom, left - right])
+            
+        # Loading poses
+        poses[0] = torch.Tensor(mat_data["object_poses"]).permute((2,0,1))
 
-        return img_data, semantic_data, bounding_data, label, questionnaire, color_file
+        return img_data, semantic_data, bounding_data, label, questionnaire, color_file, poses
 
     def _getDataFromInt(self, idx: int):
         num = self.objects[idx][-9:-4]
