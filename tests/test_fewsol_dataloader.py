@@ -106,7 +106,7 @@ def test_split(s):
     axs[1, 1].text(0.5, 0.5, description, fontsize=12, ha='center', va='center')
     axs[1, 1].set_title('Label + Questionnaire')
     axs[1, 1].axis('off')
-
+    
     if poses != None:
         print(f"{s} POSE: ", poses[0, rand_obj_idx])
     else:

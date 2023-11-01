@@ -128,11 +128,16 @@ class FewSOLDataloader(Dataset):
         mat_file = self._getMatFromIdx(idx)
         mat_data = scp.loadmat(mat_file)
 
-        
+        # This handles synthetic data poses
         if "object_poses" in mat_data:
+            # Appends the pose
             poses[0] = torch.Tensor(mat_data["object_poses"].squeeze())
+        # This handles real object data poses
         elif "joint_position" in mat_data:
+            # Creates camera relative object poses
             mat_data = compute_marker_board_center(mat_data)
+            
+            # Appends the pose
             poses[0] = torch.Tensor(mat_data["center"])  
 
         return img_data, semantic_data, bounding_data, label, questionnaire, color_file_name, poses
