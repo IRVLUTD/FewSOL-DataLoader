@@ -6,8 +6,8 @@ with open("README.md", "r", encoding = "utf-8") as fh:
 setuptools.setup(
     name = "FewSOLDataLoader",
     version = "0.0.1",
-    author = "IRVLUTD",
-    author_email = "author@example.com",
+    author = "Jesse Musa at IRVLUTD",
+    author_email = "JOM210001@utdallas.edu",
     description = "Pytorch Dataloader for FewSOL",
     long_description = long_description,
     long_description_content_type = "text/markdown",
@@ -23,5 +23,5 @@ setuptools.setup(
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
     python_requires = ">=3.0",
-    install_requires=['matplotlib', 'numpy', 'torch', 'torchvision', 'scipy', 'pyyaml', 'easydict']
+    install_requires=['matplotlib', 'numpy', 'torch', 'torchvision', 'scipy', 'pyyaml', 'easydict', 'transforms3d']
 )
