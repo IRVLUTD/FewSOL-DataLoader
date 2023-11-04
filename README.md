@@ -75,3 +75,15 @@ image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses
 Download the FewSOL dataset from https://irvlutd.github.io/FewSOL/
 
 Pass the extracted dataset directory path into the dataloader as shown in the example above
+
+
+# Lisences
+
+All files __except__ from 
+- 'FewSOL-DataLoader/src/FewSOLDataLoader/SingleRealPose.py' 
+- 'FewSOL-DataLoader/src/FewSOLDataLoader/CocoFormatConverter.py' 
+is licensed under the MIT liscense.
+
+The file 'FewSOL-DataLoader/src/FewSOLDataLoader/SingleRealPose.py' is licensed under the NVIDIA Source Code License - Non-commercial. This can be found here https://nvlabs.github.io/stylegan2/license.html#:~:text=The%20Work%20and%20any%20derivative,research%20or%20evaluation%20purposes%20only.
+
+The file 'FewSOL-DataLoader/src/FewSOLDataLoader/CocoFormatConverter.py' is licensed under the CC BY 4.0 LEGAL CODE. This can be found here https://cocodataset.org/#termsofuse
