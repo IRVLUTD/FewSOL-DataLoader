@@ -510,8 +510,9 @@ class GooogleClutterDataloader(Dataset):
                 # Concats line into palette numpy array
                 self.color_palette = np.concatenate((self.color_palette,color_arr), axis=0)
         
+        current_folder = "/".join(__file__.split("/")[:-1])        
         # Loads object to label mapper
-        with open(os.path.join(self.dataset_dir, "..", "..", self.MAPPPER_FILE), "r") as r:
+        with open(os.path.join(current_folder, self.MAPPPER_FILE), "r") as r:
             self.mapper = json.load(r)
             
         self.classes = list(set(self.mapper.values()))
