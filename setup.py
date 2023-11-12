@@ -23,5 +23,6 @@ setuptools.setup(
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
     python_requires = ">=3.0",
-    install_requires=['matplotlib', 'numpy', 'torch', 'torchvision', 'scipy', 'pyyaml', 'easydict', 'transforms3d']
+    install_requires=['matplotlib', 'numpy', 'torch', 'torchvision', 'scipy', 'pyyaml', 'easydict', 'transforms3d'],
+    package_data={'FewSOLDataLoader': ['syn_google_scenes_data_mapper.json']}
 )
