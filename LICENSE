@@ -19,3 +19,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Exception
+All files __except__ from 
+- 'FewSOL-DataLoader/src/FewSOLDataLoader/SingleRealPose.py' 
+- 'FewSOL-DataLoader/src/FewSOLDataLoader/CocoFormatConverter.py' 
+is licensed under the MIT liscense.
+
+The file 'FewSOL-DataLoader/src/FewSOLDataLoader/SingleRealPose.py' is licensed under the NVIDIA Source Code License - Non-commercial. This can be found here https://nvlabs.github.io/stylegan2/license.html#:~:text=The%20Work%20and%20any%20derivative,research%20or%20evaluation%20purposes%20only.
+
+The file 'FewSOL-DataLoader/src/FewSOLDataLoader/CocoFormatConverter.py' is licensed under the CC BY 4.0 LEGAL CODE. This can be found here https://cocodataset.org/#termsofuse

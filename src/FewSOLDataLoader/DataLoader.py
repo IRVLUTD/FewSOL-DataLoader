@@ -61,7 +61,8 @@ class FewSOLDataloader(Dataset):
                 
                 with open(os.path.join(dir, LABEL_FILE_NAME), "r") as r:
                     label = r.read().strip()
-                    self.classes.append(label)
+                    if label not in self.classes:
+                        self.classes.append(label)
                 
                 # Append each individaul objects number to the list
                 for i in range(self.ANGLE_COUNT):
@@ -510,11 +511,12 @@ class GooogleClutterDataloader(Dataset):
                 # Concats line into palette numpy array
                 self.color_palette = np.concatenate((self.color_palette,color_arr), axis=0)
         
+        current_folder = "/".join(__file__.split("/")[:-1])        
         # Loads object to label mapper
-        with open(os.path.join(self.dataset_dir, "..", "..", self.MAPPPER_FILE), "r") as r:
+        with open(os.path.join(current_folder, self.MAPPPER_FILE), "r") as r:
             self.mapper = json.load(r)
             
-        self.classes = list(set(self.mapper.values()))
+        self.classes = [self._removeUnderscore(label) for label in  list(set(self.mapper.values()))]
         
         
     def __len__(self):
@@ -535,7 +537,7 @@ class GooogleClutterDataloader(Dataset):
         # Gets google object name
         object_names = [x.strip() for x in mat_data["object_names"]]
         # Gets accurate label names from syntetic dataset
-        label = [self.mapper[x] for x in object_names]
+        label = [self._removeUnderscore(self.mapper[x]) for x in object_names]
 
         img_data = torch.tensor(
             np.zeros((1, 3, self.w, self.h), dtype=np.float64)
@@ -590,6 +592,9 @@ class GooogleClutterDataloader(Dataset):
             
             
         return seg_loc, mat_loc
+    
+    def _removeUnderscore(self, label):
+        return label.replace("_", " ")
             
             
     
