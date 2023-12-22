@@ -72,17 +72,11 @@ image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses
 ```
 
 # Datasets
-Download the FewSOL dataset from https://irvlutd.github.io/FewSOL/
+1. Download the FewSOL dataset from https://irvlutd.github.io/FewSOL/
+2. Pass the extracted dataset directory path into the dataloader as shown in the example above
 
-Pass the extracted dataset directory path into the dataloader as shown in the example above
+# Licenses
 
-# Lisences
-
-All files __except__ from 
-- 'FewSOL-DataLoader/src/FewSOLDataLoader/SingleRealPose.py' 
-- 'FewSOL-DataLoader/src/FewSOLDataLoader/CocoFormatConverter.py' 
-is licensed under the MIT liscense.
-
-The file 'FewSOL-DataLoader/src/FewSOLDataLoader/SingleRealPose.py' is licensed under the NVIDIA Source Code License - Non-commercial. This can be found here https://nvlabs.github.io/stylegan2/license.html#:~:text=The%20Work%20and%20any%20derivative,research%20or%20evaluation%20purposes%20only.
-
-The file 'FewSOL-DataLoader/src/FewSOLDataLoader/CocoFormatConverter.py' is licensed under the CC BY 4.0 LEGAL CODE. This can be found here https://cocodataset.org/#termsofuse
+All files are licensed under the MIT license __except__ for the below two inside `FewSOL-DataLoader/src/FewSOLDataLoader/`
+  - `SingleRealPose.py` - licensed under the NVIDIA Source Code License - Non-commercial as found [here](https://nvlabs.github.io/stylegan2/license.html#:~:text=The%20Work%20and%20any%20derivative,research%20or%20evaluation%20purposes%20only).
+  - `CocoFormatConverter.py` - licensed under the CC BY 4.0 LEGAL CODE as found [here](https://cocodataset.org/#termsofuse).
