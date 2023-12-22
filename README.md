@@ -1,6 +1,6 @@
 # FewSOL-DataLoader
 This repo hosts the PyTorch dataloader for FewSOL dataset.<br>
-<!-- ![FewSOL-Dataset](https://raw.githubusercontent.com/IRVLUTD/FewSOL-DataLoader/main/media/fewsol-dataset.png) -->
+![FewSOL-Dataset](https://raw.githubusercontent.com/IRVLUTD/FewSOL-DataLoader/main/media/fewsol-dataset.png)
 
 # Using package
 First install the package using
