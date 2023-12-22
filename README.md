@@ -1,5 +1,6 @@
 # FewSOL-DataLoader
-This repo hosts the PyTorch dataloader for FewSOL dataset
+This repo hosts the PyTorch dataloader for FewSOL dataset.<br>
+<!-- ![FewSOL-Dataset](https://raw.githubusercontent.com/IRVLUTD/FewSOL-DataLoader/main/media/fewsol-dataset.png) -->
 
 # Using package
 First install the package using
@@ -7,15 +8,16 @@ First install the package using
 pip install FewSOLDataLoader
 ```
 
-## Split options
-- google_clutter
-  - This is a synthetic clutter image split made with 3D google objects
-- real_objects
-  - This is a real single object image split. Each object was captured from 9 angles
-- synthetic_objects
-  - This is a synthetic single object image split. Each object was captured from 9 angles
-- real_clutter
-  - This is a real clutter image split extracted from OCID
+# Setup
+Step-1. Download the FewSOL dataset from https://irvlutd.github.io/FewSOL/#data
+- There are four splits of the FewSOL dataset:
+     1. `real_objects` : This is a real single object image split. Each object was captured from 9 angles
+     2. `real_clutter` : This is a real clutter image split extracted from the [OCID](https://www.acin.tuwien.ac.at/en/vision-for-robotics/software-tools/object-clutter-indoor-dataset/)
+     3. `synthetic_objects` : This is a synthetic single object image split made with 3D google objects. Each object was captured from 9 angles
+     4. `google_clutter` : This is a synthetic clutter image split made with 3D google objects
+- Note: The synthetic portion of the dataset is created using [Google 3D Scanned Objects](https://blog.research.google/2022/06/scanned-objects-by-google-research.html?hl=tr&m=1) dataset.
+
+Step-2. Pass the extracted dataset directory path into the dataloader as shown in the following example
 
 ## Example Usage
 ```python
@@ -41,42 +43,60 @@ image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses
 
 ## Data Formats
 
-```
-# Image Data Shape
-# n x m x q x w x h
-# n = Number of total images
-# q = 3 : Color slots for RGB
-# w = Width of the Image
-# h = Height of the image
+- Image Data Shape
+    ```
+    # n x m x q x w x h
+    # n = Number of total images
+    # q = 3 : Color slots for RGB
+    # w = Width of the Image
+    # h = Height of the image
+    ```
 
-# Semantic Segmentation Shape
-# n x m x w x h
-# n = Number of total images
-# m = Total number of objects in the current images
-# w = Width of the Image
-# h = Height of the image
+- Semantic Segmentation Shape
+    ```
+    # n x m x w x h
+    # n = Number of total images
+    # m = Total number of objects in the current images
+    # w = Width of the Image
+    # h = Height of the image
+    ```
 
-# Detection Bounds Shape
-# n x m x r
-# n = Number of total images
-# m = Total number of objects in the current images
-# r = 4 : x, y, width, height
+- Detection Bounds Shape
+    ```
+    # n x m x r
+    # n = Number of total images
+    # m = Total number of objects in the current images
+    # r = 4 : x, y, width, height
+    ```
 
-# Label Output/Description Shape
-# m = Total number of objects in the images
+- Pose Information
+    ```
+    # n x m x 4 x 4
+    # n = Number of total images
+    # m = Total number of objects in the current images
+    ```
 
-# Pose Information
-# n x m x 4 x 4
-# n = Number of total images
-# m = Total number of objects in the current images
-```
-
-# Datasets
-1. Download the FewSOL dataset from https://irvlutd.github.io/FewSOL/
-2. Pass the extracted dataset directory path into the dataloader as shown in the example above
+- Label Output/Description Shape
+    ```
+    # m = Total number of objects in the images
+    ```
 
 # Licenses
 
 All files are licensed under the MIT license __except__ for the below two inside `FewSOL-DataLoader/src/FewSOLDataLoader/`
   - `SingleRealPose.py` - licensed under the NVIDIA Source Code License - Non-commercial as found [here](https://nvlabs.github.io/stylegan2/license.html#:~:text=The%20Work%20and%20any%20derivative,research%20or%20evaluation%20purposes%20only).
   - `CocoFormatConverter.py` - licensed under the CC BY 4.0 LEGAL CODE as found [here](https://cocodataset.org/#termsofuse).
+
+
+# Bibtex
+Please cite FewSOL if it helps your research:
+```bibtex
+@INPROCEEDINGS{padalunkal2023fewsol,
+  title={FewSOL: A Dataset for Few-Shot Object Learning in Robotic Environments}, 
+  author={P, Jishnu Jaykumar and Chao, Yu-Wei and Xiang, Yu},
+  booktitle={2023 IEEE International Conference on Robotics and Automation (ICRA)}, 
+  doi={10.1109/ICRA48891.2023.10161143},
+  pages={9140-9146},
+  year={2023}
+}
+```
