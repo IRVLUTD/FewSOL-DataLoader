@@ -79,7 +79,7 @@ Pass the extracted dataset directory path into the dataloader as shown in the ex
 # Using package
 First install the package using
 ```cmd
-pip install path/to/root_dir
+pip install FewSOLDataLoader
 ```
 
 ## Split options

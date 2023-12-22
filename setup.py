@@ -11,10 +11,7 @@ setuptools.setup(
     description = "Pytorch Dataloader for FewSOL",
     long_description = long_description,
     long_description_content_type = "text/markdown",
-    url = "package URL",
-    project_urls = {
-        "Bug Tracker": "package issues URL",
-    },
+    url = "https://github.com/IRVLUTD/FewSOL-DataLoader",
     classifiers = [
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
