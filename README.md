@@ -45,7 +45,7 @@ image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses
 
 - Image Data Shape
     ```
-    # n x m x q x w x h
+    # n x q x w x h
     # n = Number of total images
     # q = 3 : Color slots for RGB
     # w = Width of the Image
