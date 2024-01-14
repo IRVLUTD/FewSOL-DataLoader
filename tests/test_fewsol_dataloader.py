@@ -17,7 +17,7 @@ from src.FewSOLDataLoader import (
 """Test FewSOl dataloader."""
 def main():
     # Load the FewSOL dataloader for the 'real_objects' and 'synthetic_objects' split
-    splits = ['google_clutter', 'real_objects', 'synthetic_objects', 'real_clutter']
+    splits = ['synthetic_objects','real_objects',  'real_clutter', 'google_clutter']
     for s in splits:
         test_split(s)
 
@@ -43,9 +43,16 @@ def test_split(s):
 
     # Generate a random index within the range of the dataloader's length
     idx = random.randint(0, len(test) - 1)
+    
+    # Gets the list of indexs for that contains a specific class
+    class_idxs = test.getClassIdx("bowl")
+    rand_class_idx = class_idxs[random.randint(0, len(class_idxs) - 1)]
+    
 
     # Retrieve data from the dataloader for the random index
     image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test[idx]
+    #image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test[rand_class_idx]
+    
     
     # Picks a random object index in the image
     rand_obj_idx = random.randint(0, len(label) - 1)

@@ -15,6 +15,7 @@ Step-1. Download the FewSOL dataset from https://irvlutd.github.io/FewSOL/#data
      2. `real_clutter` : This is a real clutter image split extracted from the [OCID](https://www.acin.tuwien.ac.at/en/vision-for-robotics/software-tools/object-clutter-indoor-dataset/)
      3. `synthetic_objects` : This is a synthetic single object image split made with 3D google objects. Each object was captured from 9 angles
      4. `google_clutter` : This is a synthetic clutter image split made with 3D google objects
+         - Note: The `google_clutter` dataloader may take ~60 seconds to instantiate
 - Note: The synthetic portion of the dataset is created using [Google 3D Scanned Objects](https://blog.research.google/2022/06/scanned-objects-by-google-research.html?hl=tr&m=1) dataset.
 
 Step-2. Pass the extracted dataset directory path into the dataloader as shown in the following example
@@ -39,6 +40,31 @@ idx = random.randint(0, len(test) - 1)
 
 # Retrieve data from the dataloader for the random index
 image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test[idx]
+```
+
+### Getting indexs for a specfic class
+```python
+from FewSOLDataLoader import load_fewsol_dataloader
+
+ # Define the root directory
+ROOT_DIR = os.getcwd()
+
+# Define the dataset root directory using the join_path function
+DATASET_ROOT_DIR = os.path.join(ROOT_DIR, 'FewSOL', 'data')
+
+# Log that the FewSOL dataloader is being loaded
+print('Loading FewSOL dataloader')
+     
+test = load_fewsol_dataloader(DATASET_ROOT_DIR, split="real_objects")    
+
+# Gets the list of indexs for that contains a specific class
+class_idxs = test.getClassIdx("bowl")
+
+# Selects a random index out of class idxs
+rand_class_idx = class_idxs[random.randint(0, len(class_idxs) - 1)]
+    
+# Retrieve data from the dataloader for the random index
+image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test[rand_class_idx]
 ```
 
 ## Data Formats

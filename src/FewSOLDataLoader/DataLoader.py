@@ -7,6 +7,7 @@ from torchvision.io import ImageReadMode
 from torch.utils.data import Dataset
 import scipy.io as scp
 import json
+import time
 
 from .SingleRealPose import compute_marker_board_center
 
@@ -52,6 +53,9 @@ class FewSOLDataloader(Dataset):
         self.ANGLE_COUNT = 9
         
         self.classes = []
+        
+        # has each class name to all its indexes in the dataloader
+        self.classes_to_idxs = {}
 
         # This is made to create an index for each different image
         self.objects = []
@@ -59,14 +63,20 @@ class FewSOLDataloader(Dataset):
             dir = os.path.join(self.dataset_dir, filename)
             if os.path.isdir(dir):
                 
+                cur_class = None
                 with open(os.path.join(dir, LABEL_FILE_NAME), "r") as r:
-                    label = r.read().strip()
-                    if label not in self.classes:
-                        self.classes.append(label)
+                    cur_class = r.read().strip()
+                    if cur_class not in self.classes:
+                        self.classes.append(cur_class)
+                        self.classes_to_idxs[cur_class] = []
                 
                 # Append each individaul objects number to the list
                 for i in range(self.ANGLE_COUNT):
                     obj_path = os.path.join(dir, "{:06d}".format(i))
+                    
+                    # Adds to the class to idx dictonary
+                    self.classes_to_idxs[cur_class].append(len(self.objects))
+                    # Adds to the object path list
                     self.objects.append(obj_path)
 
         # Finds the width and height from the first image
@@ -79,7 +89,22 @@ class FewSOLDataloader(Dataset):
         self.h = image.shape[2]
 
         self.transform = transform
-
+    
+    # Returns a list of indexs that contains a specific class
+    # Returns None on invalid input
+    def getClassIdx(self, class_identifier):
+        if isinstance(class_identifier, int):
+            if class_identifier >= len(self.classes) or class_identifier < 0:
+                return None
+            
+            return self.classes_to_idxs[self.classes[class_identifier]]
+        elif isinstance(class_identifier, str):
+            if class_identifier not in self.classes_to_idxs:
+                return None
+            return self.classes_to_idxs[class_identifier]
+        else:
+            return None
+    
     def __len__(self):
         return len(self.objects)
 
@@ -156,6 +181,7 @@ class FewSOLDataloader(Dataset):
     def _getInfoFromIdx(self, idx: int):
         folder = self.objects[idx][:-6]
         return  folder + LABEL_FILE_NAME, folder + QUESTIONNAIRE_FILE_NAME
+    
         
     
 
@@ -169,6 +195,9 @@ class RealClutterDataLoader(Dataset):
         self.OBJ_COUNT = 10
         
         self.classes = []
+        
+        # has each class name to all its indexes in the dataloader
+        self.classes_to_idxs = {}
         
         # Instantiated only if OCID_ref path exists
         self.mapping = None
@@ -191,10 +220,18 @@ class RealClutterDataLoader(Dataset):
                     self.sequences.append(dir[:-2])
                 
                 with open(os.path.join(dir, LABEL_FILE_NAME), "r") as r:
-                    label = r.read().strip()
-                    # Handles duplicate classes
-                    if label not in self.classes:
-                        self.classes.append(label)
+                    cur_class = r.read().strip()
+                    
+                    if cur_class not in self.classes:
+                        self.classes.append(cur_class)
+                        # Adds to class idx if it doesnt exist
+                        self.classes_to_idxs[cur_class] = []
+                                            
+                    # Adds to the class to idx dictonary
+                    self.classes_to_idxs[cur_class].append(self.sequences.index(dir[:-2]))
+                    
+                    
+                        
         
         # Finds the width and height from the first image
         image = read_image(
@@ -369,7 +406,21 @@ class RealClutterDataLoader(Dataset):
         
         # This was used to see what classes weren't matched
         # print( self.ocid_ref_classes- matched_ref)
-        
+    
+    # Returns a list of indexs that contains a specific class
+    # Returns None on invalid input
+    def getClassIdx(self, class_identifier):
+        if isinstance(class_identifier, int):
+            if class_identifier >= len(self.classes) or class_identifier < 0:
+                return None
+            
+            return self.classes_to_idxs[self.classes[class_identifier]]
+        elif isinstance(class_identifier, str):
+            if class_identifier not in self.classes_to_idxs:
+                return None
+            return self.classes_to_idxs[class_identifier]
+        else:
+            return None
         
     def __len__(self):
         return len(self.sequences)
@@ -468,10 +519,23 @@ class GooogleClutterDataloader(Dataset):
         self.MAPPPER_FILE = "syn_google_scenes_data_mapper.json"
         
         self.dataset_dir =  dataset_dir
-
+        
+        # has each class name to all its indexes in the dataloader
+        self.classes_to_idxs = {}
         
         # This is made to create an index for each different image
         self.objects = []
+        
+        # Creates mapper
+        current_folder = "/".join(__file__.split("/")[:-1])        
+        # Loads object to label mapper
+        with open(os.path.join(current_folder, self.MAPPPER_FILE), "r") as r:
+            self.mapper = json.load(r)
+        
+        # Creates classes list
+        self.classes = [self._removeUnderscore(label) for label in  list(set(self.mapper.values()))]
+                
+        # This loop takes most of the time (~50 seconds)
         for filename in os.listdir(os.path.join(self.dataset_dir, "train")):
             dir = os.path.join(self.dataset_dir, "train", filename)
             if not os.path.isdir(dir):
@@ -480,7 +544,26 @@ class GooogleClutterDataloader(Dataset):
             for imagename in os.listdir(dir):
                 if imagename[:3] == "rgb":
                     self.objects.append(os.path.join(dir, imagename))
-
+                    
+                    # Adding to class to idx -------- 
+                    
+                    # Gets file locations
+                    _, mat_file = self._getDataFromInt(len(self.objects) - 1)
+                    # Loads mat file
+                    mat_data = scp.loadmat(mat_file)
+                    # Gets google object name
+                    object_names = [x.strip() for x in mat_data["object_names"]]
+                    # Gets accurate label names from syntetic dataset
+                    labels = [self._removeUnderscore(self.mapper[x]) for x in object_names]
+                    
+                    for l in labels:
+                        if l not in self.classes_to_idxs:
+                            self.classes_to_idxs[l] = []
+                            
+                        self.classes_to_idxs[l].append(len(self.objects) - 1)
+                        
+                    # ---------
+                
         # Finds the width and height from the first image
         image = read_image(
             self.objects[0],
@@ -510,15 +593,22 @@ class GooogleClutterDataloader(Dataset):
                 
                 # Concats line into palette numpy array
                 self.color_palette = np.concatenate((self.color_palette,color_arr), axis=0)
-        
-        current_folder = "/".join(__file__.split("/")[:-1])        
-        # Loads object to label mapper
-        with open(os.path.join(current_folder, self.MAPPPER_FILE), "r") as r:
-            self.mapper = json.load(r)
+    
+    # Returns a list of indexs that contains a specific class
+    # Returns None on invalid input
+    def getClassIdx(self, class_identifier):
+        if isinstance(class_identifier, int):
+            if class_identifier >= len(self.classes) or class_identifier < 0:
+                return None
             
-        self.classes = [self._removeUnderscore(label) for label in  list(set(self.mapper.values()))]
-        
-        
+            return self.classes_to_idxs[self.classes[class_identifier]]
+        elif isinstance(class_identifier, str):
+            if class_identifier not in self.classes_to_idxs:
+                return None
+            return self.classes_to_idxs[class_identifier]
+        else:
+            return None    
+    
     def __len__(self):
         return len(self.objects)
 
