@@ -38,14 +38,14 @@ data = load_fewsol_dataloader(DATASET_ROOT_DIR, split="real_objects")
 idx = random.randint(0, len(data) - 1)
 
 # Retrieve data from the dataloader for the random index
-image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = data[idx]
+image_data, mask_data, bbox_data, label, questionnaire, file_name, poses = data[idx]
 ```
 
 ### Loading Specfic Data in order to speed up the dataloader
 ```python
 # Retrieve data from the dataloader for the random index
 # Default loads all data, Data not loaded will be None
-image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = data.get_idx(
+image_data, mask_data, bbox_data, label, questionnaire, file_name, poses = data.get_idx(
     idx,
     load_img=False,
     load_mask=True,
@@ -66,7 +66,7 @@ class_idxs = data.get_class_idx("bowl")
 ```python
 # Functions supports 3D(color images) and 2D(no rgb axis)
 from FewSOLDataLoader.helpers import crop_obj_using_bbox 
-cropped_img = crop_obj_using_bbox(image_data[0],  bounding_data[0, rand_obj_idx])
+cropped_img = crop_obj_using_bbox(image_data[0],  bbox_data[0, rand_obj_idx])
 ```
 
 ## Data Formats
