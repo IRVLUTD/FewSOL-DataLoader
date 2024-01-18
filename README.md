@@ -46,7 +46,7 @@ image_data, mask_data, bbox_data, label, questionnaire, file_name, poses = data[
 # Retrieve data from the dataloader for the random index
 # Default loads all data, Data not loaded will be None
 image_data, mask_data, bbox_data, label, questionnaire, file_name, poses = data.get_idx(
-    idx,
+    rand_idx,
     load_img=False,
     load_mask=True,
     load_bbox=True,
