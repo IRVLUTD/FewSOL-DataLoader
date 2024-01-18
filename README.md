@@ -35,10 +35,10 @@ DATASET_ROOT_DIR = os.path.join(ROOT_DIR, 'FewSOL', 'data')
 data = load_fewsol_dataloader(DATASET_ROOT_DIR, split="real_objects")    
 
 # Generate a random index within the range of the dataloader's length
-idx = random.randint(0, len(data) - 1)
+rand_idx = random.randint(0, len(data) - 1)
 
 # Retrieve data from the dataloader for the random index
-image_data, mask_data, bbox_data, label, questionnaire, file_name, poses = data[idx]
+image_data, mask_data, bbox_data, label, questionnaire, file_name, poses = data[rand_idx]
 ```
 
 ### Loading Specfic Data in order to speed up the dataloader
@@ -60,12 +60,14 @@ image_data, mask_data, bbox_data, label, questionnaire, file_name, poses = data.
 ```python
 # Gets the list of indexs for that contains a specific class
 class_idxs = data.get_class_idx("bowl")
+rand_class_idx = class_idxs[random.randint(0, len(class_idxs) - 1)]
 ```
 
 ### Crop desired object using bbox data
 ```python
 # Functions supports 3D(color images) and 2D(no rgb axis)
-from FewSOLDataLoader.helpers import crop_obj_using_bbox 
+from FewSOLDataLoader.helpers import crop_obj_using_bbox
+rand_obj_idx = random.randint(0, len(label) - 1)
 cropped_img = crop_obj_using_bbox(image_data[0],  bbox_data[0, rand_obj_idx])
 ```
 

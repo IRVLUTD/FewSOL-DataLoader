@@ -176,24 +176,29 @@ def scale_bboxes_wrt_H_W(bboxes, H, W):
 
 
 # Accepts image and bounding data
-def crop_obj_using_bbox(image_data, bounding_data):
+def crop_obj_using_bbox(image_data, bbox_data):
+    """
+    Args: 
+        - Image (np.ndarray)
+        - 1 bbox (np.ndarray)
+    """
     assert len(image_data.shape) ==2 or len(image_data.shape) == 3, f"Only accepts images with 2 or 3 dimensions supplied images has {len(image_data.shape)}"
     
     if len(image_data.shape) == 2:
         return image_data[
-            bounding_data[1]:bounding_data[1] + bounding_data[3],
-            bounding_data[0]:bounding_data[0] + bounding_data[2]
+            bbox_data[1]:bbox_data[1] + bbox_data[3],
+            bbox_data[0]:bbox_data[0] + bbox_data[2]
         ]
     else:
         # rgba axis first
         if image_data.shape[0] == 3 or image_data.shape[0] == 4:
             return image_data[:,
-                bounding_data[1]:bounding_data[1] + bounding_data[3],
-                bounding_data[0]:bounding_data[0] + bounding_data[2]
+                bbox_data[1]:bbox_data[1] + bbox_data[3],
+                bbox_data[0]:bbox_data[0] + bbox_data[2]
             ]
         # rbga axis last
         else:
             return image_data[
-                bounding_data[1]:bounding_data[1] + bounding_data[3],
-                bounding_data[0]:bounding_data[0] + bounding_data[2]
+                bbox_data[1]:bbox_data[1] + bbox_data[3],
+                bbox_data[0]:bbox_data[0] + bbox_data[2]
             ]
