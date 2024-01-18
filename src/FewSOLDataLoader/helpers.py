@@ -176,7 +176,7 @@ def scale_bboxes_wrt_H_W(bboxes, H, W):
 
 
 # Accepts image and bounding data
-def crop_img_using_bbox(image_data, bounding_data):
+def crop_obj_using_bbox(image_data, bounding_data):
     assert len(image_data.shape) ==2 or len(image_data.shape) == 3, f"Only accepts images with 2 or 3 dimensions supplied images has {len(image_data.shape)}"
     
     if len(image_data.shape) == 2:
