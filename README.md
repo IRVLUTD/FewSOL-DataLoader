@@ -40,6 +40,11 @@ idx = random.randint(0, len(test) - 1)
 
 # Retrieve data from the dataloader for the random index
 image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test[idx]
+
+# Bounds image helper
+# Functions supports 3D(color images) and 2D(no rgb axis)
+from FewSOLDataLoader.helpers import bound_img 
+bounded_img = bound_img(image_data[0],  bounding_data[0, rand_obj_idx])
 ```
 
 ### Getting indexs for a specfic class
@@ -58,13 +63,55 @@ print('Loading FewSOL dataloader')
 test = load_fewsol_dataloader(DATASET_ROOT_DIR, split="real_objects")    
 
 # Gets the list of indexs for that contains a specific class
-class_idxs = test.getClassIdx("bowl")
+class_idxs = test.get_class_idx("bowl")
 
 # Selects a random index out of class idxs
 rand_class_idx = class_idxs[random.randint(0, len(class_idxs) - 1)]
     
 # Retrieve data from the dataloader for the random index
 image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test[rand_class_idx]
+
+# Bounds image helper
+# Functions supports 3D(color images) and 2D(no rgb axis)
+from FewSOLDataLoader.helpers import bound_img 
+bounded_img = bound_img(image_data[0],  bounding_data[0, rand_obj_idx])
+```
+
+### Loading Specfic Data in order to speed up the dataloader
+```python
+from FewSOLDataLoader import load_fewsol_dataloader
+
+ # Define the root directory
+ROOT_DIR = os.getcwd()
+
+# Define the dataset root directory using the join_path function
+DATASET_ROOT_DIR = os.path.join(ROOT_DIR, 'FewSOL', 'data')
+
+# Log that the FewSOL dataloader is being loaded
+print('Loading FewSOL dataloader')
+     
+test = load_fewsol_dataloader(DATASET_ROOT_DIR, split="real_objects")    
+
+# Gets the list of indexs for that contains a specific class
+idx = random.randint(0, len(test) - 1)
+    
+# Retrieve data from the dataloader for the random index
+# Default loads all data
+# Data not loaded will be None
+image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test.get_idx(
+    idx,
+    load_img=False,
+    load_sem=True,
+    load_bounds=True,
+    load_label=False,
+    load_quest=False,
+    load_pose=False,
+)
+
+# Bounds image helper
+# Functions supports 3D(color images) and 2D(no rgb axis)
+from FewSOLDataLoader.helpers import bound_img 
+bounded_img = bound_img(image_data[0],  bounding_data[0, rand_obj_idx])
 ```
 
 ## Data Formats

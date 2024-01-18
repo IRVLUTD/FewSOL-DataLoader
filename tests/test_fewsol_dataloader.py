@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from src.FewSOLDataLoader import (
     load_fewsol_dataloader
 )
+from src.FewSOLDataLoader.helpers import bound_img 
 
 """Test FewSOl dataloader."""
 def main():
@@ -45,14 +46,27 @@ def test_split(s):
     idx = random.randint(0, len(test) - 1)
     
     # Gets the list of indexs for that contains a specific class
-    class_idxs = test.getClassIdx("bowl")
+    class_idxs = test.get_class_idx("bowl")
     rand_class_idx = class_idxs[random.randint(0, len(class_idxs) - 1)]
     
 
     # Retrieve data from the dataloader for the random index
     image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test[idx]
     #image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test[rand_class_idx]
+    """
+    image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test.get_idx(
+        idx,
+        load_img=True,
+        load_sem=False,
+        load_bounds=False,
+        load_label=False,
+        load_quest=False,
+        load_pose=False,
+    )
+    """
     
+    print(image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses)
+    return
     
     # Picks a random object index in the image
     rand_obj_idx = random.randint(0, len(label) - 1)
@@ -97,13 +111,9 @@ def test_split(s):
     axs[0, 1].axis('off')
 
     # Extract and plot the bounded image on the third subplot
-    bounded_img = np.moveaxis(
-        image_data[0, :,
-            bounding_data[0, rand_obj_idx, 1]:bounding_data[0, rand_obj_idx, 1] + bounding_data[0, rand_obj_idx, 3],
-            bounding_data[0, rand_obj_idx, 0]:bounding_data[0, rand_obj_idx, 0] + bounding_data[0, rand_obj_idx, 2]
-        ],
-        0, -1)
-        
+    bounded_img = np.moveaxis(bound_img(image_data[0],  bounding_data[0, rand_obj_idx]),0, -1)
+    print("Bounds shape:",bounded_img.shape)
+    
     axs[1, 0].imshow(bounded_img)
     axs[1, 0].set_title('Bounded Image')
     axs[1, 0].axis('off')

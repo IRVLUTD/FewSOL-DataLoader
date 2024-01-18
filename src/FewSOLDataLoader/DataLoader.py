@@ -92,7 +92,7 @@ class FewSOLDataloader(Dataset):
     
     # Returns a list of indexs that contains a specific class
     # Returns None on invalid input
-    def getClassIdx(self, class_identifier):
+    def get_class_idx(self, class_identifier):
         if isinstance(class_identifier, int):
             if class_identifier >= len(self.classes) or class_identifier < 0:
                 return None
@@ -108,63 +108,87 @@ class FewSOLDataloader(Dataset):
     def __len__(self):
         return len(self.objects)
 
-    def __getitem__(self, idx):        
+    def __getitem__(self, idx):
+        return self.get_idx(idx)
+        
+    def get_idx(self,
+                idx,
+                load_img:bool=True,
+                load_sem:bool=True,
+                load_bounds:bool=True,
+                load_label:bool=True,
+                load_quest:bool=True,
+                load_pose:bool=True,
+                ):         
         label_file, questionnaire_file = self._getInfoFromIdx(idx)
         
-        with open(label_file, "r") as r:
-            label = [r.read().strip()]
-        with open(questionnaire_file, "r") as r:
-            questionnaire = [r.read().strip()]
+        descriptions = None
+        label = None
+        questionnaire = None
+        
+        if load_label:
+            with open(label_file, "r") as r:
+                label = [r.read().strip()]
+        if load_quest:
+            with open(questionnaire_file, "r") as r:
+                questionnaire = [r.read().strip()]
+            
+            
+        semantic_data = None 
+        bounding_data = None 
+        
+        img_data = torch.zeros((1, 3, self.w, self.h), dtype=torch.float64) if load_img else None
 
-        img_data = torch.tensor(
-            np.zeros((1, 3, self.w, self.h), dtype=np.float64)
-        )
-        semantic_data = torch.tensor(
-            np.zeros((1, 1, self.w, self.h), dtype=np.float64)
-        )
-        bounding_data = torch.tensor(
-            np.zeros((1, 1, 4), dtype=np.float64)
-        )
-        poses = torch.zeros(1, 1, 4, 4)
+        if load_bounds:
+            # Semantic data is needed to calculate bounding data
+            semantic_data = torch.zeros((1, 1, self.w, self.h), dtype=torch.float64)
+            bounding_data = torch.zeros((1, 1, 4), dtype=torch.float64)
+        elif load_sem:
+            semantic_data = torch.zeros((1, 1, self.w, self.h), dtype=torch.float64)
+            
+        poses = torch.zeros(1, 1, 4, 4) if load_pose else None
         
 
         color_file_name = self._getColorFromIdx(idx)
         
-        # Loads the color images
-        image = read_image(
-            color_file_name, ImageReadMode.RGB
-        )
-        if self.transform:
-            image = self.transform(image)
-        img_data[0] = image
+        if load_img:
+            # Loads the color images
+            image = read_image(
+                color_file_name, ImageReadMode.RGB
+            )
+            if self.transform:
+                image = self.transform(image)
+            img_data[0] = image
 
-        # Loads segmentation label
-        semantic_label = read_image(
-            self._getLabelImgFromIdx(idx), ImageReadMode.GRAY
-        )
-        semantic_data[0] = semantic_label[0]
-            
-        right, left, bottom, top = calculateBoundBox(semantic_label[0])
-        bounding_data[0] = torch.tensor([bottom, right, top - bottom, left - right])
+        if load_bounds or load_sem:
+            # Loads segmentation label
+            semantic_label = read_image(
+                self._getLabelImgFromIdx(idx), ImageReadMode.GRAY
+            )
+            semantic_data[0] = semantic_label[0]
+        
+        if load_bounds:
+            right, left, bottom, top = calculate_bound_box(semantic_label[0])
+            bounding_data[0] = torch.tensor([bottom, right, top - bottom, left - right])
         
         
         # Loads pose information
-        
         # Loads mat file
-        mat_file = self._getMatFromIdx(idx)
-        mat_data = scp.loadmat(mat_file)
+        if load_pose:
+            mat_file = self._getMatFromIdx(idx)
+            mat_data = scp.loadmat(mat_file)
 
-        # This handles synthetic data poses
-        if "object_poses" in mat_data:
-            # Appends the pose
-            poses[0] = torch.Tensor(mat_data["object_poses"].squeeze())
-        # This handles real object data poses
-        elif "joint_position" in mat_data:
-            # Creates camera relative object poses
-            mat_data = compute_marker_board_center(mat_data)
-            
-            # Appends the pose
-            poses[0] = torch.Tensor(mat_data["center"])  
+            # This handles synthetic data poses
+            if "object_poses" in mat_data:
+                # Appends the pose
+                poses[0] = torch.Tensor(mat_data["object_poses"].squeeze())
+            # This handles real object data poses
+            elif "joint_position" in mat_data:
+                # Creates camera relative object poses
+                mat_data = compute_marker_board_center(mat_data)
+                
+                # Appends the pose
+                poses[0] = torch.Tensor(mat_data["center"])  
 
         return img_data, semantic_data, bounding_data, label, questionnaire, color_file_name, poses
 
@@ -409,7 +433,7 @@ class RealClutterDataLoader(Dataset):
     
     # Returns a list of indexs that contains a specific class
     # Returns None on invalid input
-    def getClassIdx(self, class_identifier):
+    def get_class_idx(self, class_identifier):
         if isinstance(class_identifier, int):
             if class_identifier >= len(self.classes) or class_identifier < 0:
                 return None
@@ -425,62 +449,82 @@ class RealClutterDataLoader(Dataset):
     def __len__(self):
         return len(self.sequences)
 
-    def __getitem__(self, idx):       
-                      
-        descriptions = [] 
-        label = []
+    def __getitem__(self, idx):
+        return self.get_idx(idx)
         
-        img_data = torch.tensor(
-            np.zeros((1, 3, self.w, self.h), dtype=np.float64)
-        )
-        semantic_data = torch.tensor(
-            np.zeros((1, self.OBJ_COUNT, self.w, self.h), dtype=np.float64)
-        )
-        bounding_data = torch.tensor(
-            np.zeros((1, self.OBJ_COUNT, 4), dtype=np.float64)
-        )
+    def get_idx(self,
+                idx,
+                load_img:bool=True,
+                load_sem:bool=True,
+                load_bounds:bool=True,
+                load_label:bool=True,
+                load_quest:bool=True,
+                load_pose:bool=True,
+                ):     
+                      
+        descriptions = [] if load_quest else None
+        label = [] if load_label else None
+        
+        semantic_data = None 
+        bounding_data = None 
+        
+        img_data = torch.zeros((1, 3, self.w, self.h), dtype=torch.float64) if load_img else None
+
+        if load_bounds:
+            # Semantic data is needed to calculate bounding data
+            semantic_data = torch.zeros((1, self.OBJ_COUNT, self.w, self.h), dtype=torch.float64)
+            bounding_data = torch.zeros((1, self.OBJ_COUNT, 4), dtype=torch.float64)
+        elif load_sem:
+            semantic_data = torch.zeros((1, self.OBJ_COUNT, self.w, self.h), dtype=torch.float64)
+
+        
         # OCID does not contain poses
         poses = None
         
         # The last object in the sequence has the complete image
         color_file = self._getFiles(idx, self.OBJ_COUNT)[0]
-
-        # Loads the color images
-        image = read_image(
-            color_file, ImageReadMode.RGB
-        )
-        if self.transform:
-            image = self.transform(image)
+            
+        if load_img:
+            # Loads the color images
+            image = read_image(
+                color_file, ImageReadMode.RGB
+            )
+            if self.transform:
+                image = self.transform(image)
         
-        img_data[0] = image
+            img_data[0] = image
 
         for obj_i in range(0, self.OBJ_COUNT):
             
             # Gets the label and semantic info for the ith object
             _, mat_file, label_file, ques_file = self._getFiles(idx, obj_i + 1)
             
-            # Appends the obj label to list
-            with open(label_file, "r") as r:
-                label.append(r.readline().strip())
+            if load_label:
+                # Appends the obj label to list
+                with open(label_file, "r") as r:
+                    label.append(r.readline().strip())
             
-            # Appends the questionnaire to list if exists 
-            if ques_file == None:
-                descriptions.append(None)
-            else:  
-                with open(ques_file, "r") as r:
-                    descriptions.append(r.readline().strip())
-                        
-            # Loads segmentation label from mat file  
-            matData = scp.loadmat(mat_file)
-                           
-            # Creates a 1 and 0 segmentation array
-            objectID = matData["object_id"][0,0]
-            semantic_data[0, obj_i] = torch.tensor(matData["label"])
-            semantic_data[0, obj_i][semantic_data[0, obj_i] != objectID] = 0
-            semantic_data[0, obj_i][semantic_data[0, obj_i] == objectID] = 1
+            if load_quest:
+                # Appends the questionnaire to list if exists 
+                if ques_file == None:
+                    descriptions.append(None)
+                else:  
+                    with open(ques_file, "r") as r:
+                        descriptions.append(r.readline().strip())
+            
+            if load_bounds or load_sem:
+                # Loads segmentation label from mat file  
+                matData = scp.loadmat(mat_file)
+                            
+                # Creates a 1 and 0 segmentation array
+                objectID = matData["object_id"][0,0]
+                semantic_data[0, obj_i] = torch.tensor(matData["label"])
+                semantic_data[0, obj_i][semantic_data[0, obj_i] != objectID] = 0
+                semantic_data[0, obj_i][semantic_data[0, obj_i] == objectID] = 1
 
-            right, left, bottom, top = calculateBoundBox(semantic_data[0, obj_i])
-            bounding_data[0, obj_i] = torch.tensor([bottom, right, top - bottom, left - right,])
+                if load_bounds:
+                    right, left, bottom, top = calculate_bound_box(semantic_data[0, obj_i])
+                    bounding_data[0, obj_i] = torch.tensor([bottom, right, top - bottom, left - right,])
         
         return img_data, semantic_data, bounding_data, label, descriptions, color_file, poses
     
@@ -517,6 +561,7 @@ class GooogleClutterDataloader(Dataset):
         self.ANGLE_COUNT = 7
         self.COLOR_PALLETE_FILE = "palette.txt"
         self.MAPPPER_FILE = "syn_google_scenes_data_mapper.json"
+        self.FILE_TO_CLASS_MAPPER = "file_class_mapper.json"
         
         self.dataset_dir =  dataset_dir
         
@@ -531,23 +576,31 @@ class GooogleClutterDataloader(Dataset):
         # Loads object to label mapper
         with open(os.path.join(current_folder, self.MAPPPER_FILE), "r") as r:
             self.mapper = json.load(r)
+            
+        # Holds the list of classes that each folder has
+        # This speeds up the class_to_idx speed
+        with open(os.path.join(current_folder, self.FILE_TO_CLASS_MAPPER), 'r') as f:
+            self.folder_to_classes = json.load(f)
         
         # Creates classes list
         self.classes = [self._removeUnderscore(label) for label in  list(set(self.mapper.values()))]
                 
-        # This loop takes most of the time (~50 seconds)
-        for filename in os.listdir(os.path.join(self.dataset_dir, "train")):
-            dir = os.path.join(self.dataset_dir, "train", filename)
+
+        for foldername in os.listdir(os.path.join(self.dataset_dir, "train")):
+            dir = os.path.join(self.dataset_dir, "train", foldername)
             if not os.path.isdir(dir):
                 continue
             
             for imagename in os.listdir(dir):
-                if imagename[:3] == "rgb":
-                    self.objects.append(os.path.join(dir, imagename))
+                if imagename[:3] != "rgb":
+                    continue
+                
+                self.objects.append(os.path.join(dir, imagename))
                     
-                    # Adding to class to idx -------- 
+                # Adding to class to idx -------- 
                     
-                    # Gets file locations
+                # If folder is not saved that add the data to the dictionary
+                if foldername not in self.folder_to_classes:
                     _, mat_file = self._getDataFromInt(len(self.objects) - 1)
                     # Loads mat file
                     mat_data = scp.loadmat(mat_file)
@@ -556,14 +609,18 @@ class GooogleClutterDataloader(Dataset):
                     # Gets accurate label names from syntetic dataset
                     labels = [self._removeUnderscore(self.mapper[x]) for x in object_names]
                     
-                    for l in labels:
-                        if l not in self.classes_to_idxs:
-                            self.classes_to_idxs[l] = []
-                            
-                        self.classes_to_idxs[l].append(len(self.objects) - 1)
+                    self.folder_to_classes[foldername] = labels
                         
-                    # ---------
                 
+                labels = self.folder_to_classes[foldername]
+                for l in labels:
+                    if l not in self.classes_to_idxs:
+                        self.classes_to_idxs[l] = []
+                            
+                    self.classes_to_idxs[l].append(len(self.objects) - 1)
+                        
+                # ---------
+        
         # Finds the width and height from the first image
         image = read_image(
             self.objects[0],
@@ -593,10 +650,14 @@ class GooogleClutterDataloader(Dataset):
                 
                 # Concats line into palette numpy array
                 self.color_palette = np.concatenate((self.color_palette,color_arr), axis=0)
+        
+        
+        
+            
     
     # Returns a list of indexs that contains a specific class
     # Returns None on invalid input
-    def getClassIdx(self, class_identifier):
+    def get_class_idx(self, class_identifier):
         if isinstance(class_identifier, int):
             if class_identifier >= len(self.classes) or class_identifier < 0:
                 return None
@@ -613,7 +674,18 @@ class GooogleClutterDataloader(Dataset):
         return len(self.objects)
 
     def __getitem__(self, idx):
-        # Questionnair doesnt exist
+        return self.get_idx(idx)
+        
+    def get_idx(self,
+                idx,
+                load_img:bool=True,
+                load_sem:bool=True,
+                load_bounds:bool=True,
+                load_label:bool=True,
+                load_quest:bool=True,
+                load_pose:bool=True,
+                ):
+        # Questionnaire doesnt exist
         questionnaire = None
 
         color_file = self.objects[idx]        
@@ -623,52 +695,59 @@ class GooogleClutterDataloader(Dataset):
         
         # Loads mat file
         mat_data = scp.loadmat(mat_file)
-        
         # Gets google object name
         object_names = [x.strip() for x in mat_data["object_names"]]
-        # Gets accurate label names from syntetic dataset
-        label = [self._removeUnderscore(self.mapper[x]) for x in object_names]
+        
+        
+        label = [self._removeUnderscore(self.mapper[x]) for x in object_names] if load_label else None
 
-        img_data = torch.tensor(
-            np.zeros((1, 3, self.w, self.h), dtype=np.float64)
-        )
-        # Loads the color image
-        image = read_image(
-            color_file, ImageReadMode.RGB
-        )
-        if self.transform:
-            image = self.transform(image)
-        img_data[0] = image
+        img_data = None
+        if load_img:
+            img_data = torch.zeros((1, 3, self.w, self.h), dtype=torch.float64)
+            # Loads the color image
+            image = read_image(
+                color_file, ImageReadMode.RGB
+            )
+            if self.transform:
+                image = self.transform(image)
+            img_data[0] = image
         
         
-        semantic_data = torch.tensor(
-            np.zeros((1, len(object_names), self.w, self.h), dtype=np.float64)
-        )
-        bounding_data = torch.tensor(
-            np.zeros((1, len(object_names), 4), dtype=np.float64)
-        )
-        poses = torch.zeros((1, len(object_names), 4, 4))
+        semantic_data = None 
+        bounding_data = None 
+        poses = None
+        
+        if load_bounds:
+            # Semantic data is needed to calculate bounding data
+            semantic_data = torch.zeros((1, len(object_names), self.w, self.h), dtype=torch.float64)
+            bounding_data = torch.zeros((1, len(object_names), 4), dtype=torch.float64)
+        elif load_sem:
+            semantic_data = torch.zeros((1, len(object_names), self.w, self.h), dtype=torch.float64)
+            
+        poses = torch.zeros((1, len(object_names), 4, 4)) if load_pose else None
         
         for i in range(len(object_names)):
-            # Loads segmentation label
-            semantic_rgb_label = read_image(seg_file, ImageReadMode.RGB)
-            # Gets the palette index
-            sem_color = self.color_palette[mat_data[object_names[i]][0][0]]
-            
-            # Conditional in order to get the indexes where the color matches
-            color_cond_idx = (semantic_rgb_label[0 ,:, :] == sem_color[0]) & \
-                (semantic_rgb_label[1 ,:, :] == sem_color[1]) & \
-                (semantic_rgb_label[2 ,:, :] == sem_color[2])
-            
-            # Sets color matching index to 1
-            semantic_data[0,i, color_cond_idx] = 1
+            if load_sem or load_bounds:
+                # Loads segmentation label
+                semantic_rgb_label = read_image(seg_file, ImageReadMode.RGB)
+                # Gets the palette index
+                sem_color = self.color_palette[mat_data[object_names[i]][0][0]]
+                
+                # Conditional in order to get the indexes where the color matches
+                color_cond_idx = (semantic_rgb_label[0 ,:, :] == sem_color[0]) & \
+                    (semantic_rgb_label[1 ,:, :] == sem_color[1]) & \
+                    (semantic_rgb_label[2 ,:, :] == sem_color[2])
+                
+                # Sets color matching index to 1
+                semantic_data[0,i, color_cond_idx] = 1
         
-
-            right, left, bottom, top = calculateBoundBox(semantic_data[0,i])
-            bounding_data[0, i] = torch.tensor([bottom, right, top - bottom, left - right])
-            
-        # Loading poses
-        poses[0] = torch.Tensor(mat_data["object_poses"]).permute((2,0,1))
+            if load_bounds:
+                right, left, bottom, top = calculate_bound_box(semantic_data[0,i])
+                bounding_data[0, i] = torch.tensor([bottom, right, top - bottom, left - right])
+        
+        if load_pose:  
+            # Loading poses
+            poses[0] = torch.Tensor(mat_data["object_poses"]).permute((2,0,1))
 
         return img_data, semantic_data, bounding_data, label, questionnaire, color_file, poses
 
@@ -685,13 +764,10 @@ class GooogleClutterDataloader(Dataset):
     
     def _removeUnderscore(self, label):
         return label.replace("_", " ")
-            
-            
-    
 
 
 # Calculates the bounding box information from semantic label
-def calculateBoundBox(semanticLabel):
+def calculate_bound_box(semanticLabel):
     top, bottom, right, left = 0,0,0,0 
     
     # Gets positions where the data is not 0
@@ -712,4 +788,3 @@ def calculateBoundBox(semanticLabel):
     left = maxs[0][0]
     
     return right, left, bottom, top
-    
