@@ -5,9 +5,9 @@ with open("README.md", "r", encoding = "utf-8") as fh:
 
 setuptools.setup(
     name = "FewSOLDataLoader",
-    version = "0.0.7",
+    version = "0.0.8",
     author = "Jesse Musa at IRVLUTD",
-    author_email = "JOM210001@utdallas.edu",
+    author_email = "jesse.musa@utdallas.edu",
     description = "Pytorch Dataloader for FewSOL",
     long_description = long_description,
     long_description_content_type = "text/markdown",
