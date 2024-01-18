@@ -65,8 +65,8 @@ class_idxs = data.get_class_idx("bowl")
 ### Crop desired object using bbox data
 ```python
 # Functions supports 3D(color images) and 2D(no rgb axis)
-from FewSOLDataLoader.helpers import crop_img_using_bbox 
-cropped_img = crop_img_using_bbox(image_data[0],  bounding_data[0, rand_obj_idx])
+from FewSOLDataLoader.helpers import crop_obj_using_bbox 
+cropped_img = crop_obj_using_bbox(image_data[0],  bounding_data[0, rand_obj_idx])
 ```
 
 ## Data Formats
