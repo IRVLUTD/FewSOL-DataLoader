@@ -114,10 +114,10 @@ class FewSOLDataloader(Dataset):
     def get_idx(self,
                 idx,
                 load_img:bool=True,
-                load_sem:bool=True,
-                load_bounds:bool=True,
+                load_mask:bool=True,
+                load_bbox:bool=True,
                 load_label:bool=True,
-                load_quest:bool=True,
+                load_que:bool=True,
                 load_pose:bool=True,
                 ):         
         label_file, questionnaire_file = self._getInfoFromIdx(idx)
@@ -129,7 +129,7 @@ class FewSOLDataloader(Dataset):
         if load_label:
             with open(label_file, "r") as r:
                 label = [r.read().strip()]
-        if load_quest:
+        if load_que:
             with open(questionnaire_file, "r") as r:
                 questionnaire = [r.read().strip()]
             
@@ -139,11 +139,11 @@ class FewSOLDataloader(Dataset):
         
         img_data = torch.zeros((1, 3, self.w, self.h), dtype=torch.float64) if load_img else None
 
-        if load_bounds:
+        if load_bbox:
             # Semantic data is needed to calculate bounding data
             semantic_data = torch.zeros((1, 1, self.w, self.h), dtype=torch.float64)
             bounding_data = torch.zeros((1, 1, 4), dtype=torch.float64)
-        elif load_sem:
+        elif load_mask:
             semantic_data = torch.zeros((1, 1, self.w, self.h), dtype=torch.float64)
             
         poses = torch.zeros(1, 1, 4, 4) if load_pose else None
@@ -160,14 +160,14 @@ class FewSOLDataloader(Dataset):
                 image = self.transform(image)
             img_data[0] = image
 
-        if load_bounds or load_sem:
+        if load_bbox or load_mask:
             # Loads segmentation label
             semantic_label = read_image(
                 self._getLabelImgFromIdx(idx), ImageReadMode.GRAY
             )
             semantic_data[0] = semantic_label[0]
         
-        if load_bounds:
+        if load_bbox:
             right, left, bottom, top = calculate_bound_box(semantic_label[0])
             bounding_data[0] = torch.tensor([bottom, right, top - bottom, left - right])
         
@@ -455,14 +455,14 @@ class RealClutterDataLoader(Dataset):
     def get_idx(self,
                 idx,
                 load_img:bool=True,
-                load_sem:bool=True,
-                load_bounds:bool=True,
+                load_mask:bool=True,
+                load_bbox:bool=True,
                 load_label:bool=True,
-                load_quest:bool=True,
+                load_que:bool=True,
                 load_pose:bool=True,
                 ):     
                       
-        descriptions = [] if load_quest else None
+        descriptions = [] if load_que else None
         label = [] if load_label else None
         
         semantic_data = None 
@@ -470,11 +470,11 @@ class RealClutterDataLoader(Dataset):
         
         img_data = torch.zeros((1, 3, self.w, self.h), dtype=torch.float64) if load_img else None
 
-        if load_bounds:
+        if load_bbox:
             # Semantic data is needed to calculate bounding data
             semantic_data = torch.zeros((1, self.OBJ_COUNT, self.w, self.h), dtype=torch.float64)
             bounding_data = torch.zeros((1, self.OBJ_COUNT, 4), dtype=torch.float64)
-        elif load_sem:
+        elif load_mask:
             semantic_data = torch.zeros((1, self.OBJ_COUNT, self.w, self.h), dtype=torch.float64)
 
         
@@ -504,7 +504,7 @@ class RealClutterDataLoader(Dataset):
                 with open(label_file, "r") as r:
                     label.append(r.readline().strip())
             
-            if load_quest:
+            if load_que:
                 # Appends the questionnaire to list if exists 
                 if ques_file == None:
                     descriptions.append(None)
@@ -512,7 +512,7 @@ class RealClutterDataLoader(Dataset):
                     with open(ques_file, "r") as r:
                         descriptions.append(r.readline().strip())
             
-            if load_bounds or load_sem:
+            if load_bbox or load_mask:
                 # Loads segmentation label from mat file  
                 matData = scp.loadmat(mat_file)
                             
@@ -522,7 +522,7 @@ class RealClutterDataLoader(Dataset):
                 semantic_data[0, obj_i][semantic_data[0, obj_i] != objectID] = 0
                 semantic_data[0, obj_i][semantic_data[0, obj_i] == objectID] = 1
 
-                if load_bounds:
+                if load_bbox:
                     right, left, bottom, top = calculate_bound_box(semantic_data[0, obj_i])
                     bounding_data[0, obj_i] = torch.tensor([bottom, right, top - bottom, left - right,])
         
@@ -679,10 +679,10 @@ class GooogleClutterDataloader(Dataset):
     def get_idx(self,
                 idx,
                 load_img:bool=True,
-                load_sem:bool=True,
-                load_bounds:bool=True,
+                load_mask:bool=True,
+                load_bbox:bool=True,
                 load_label:bool=True,
-                load_quest:bool=True,
+                load_que:bool=True,
                 load_pose:bool=True,
                 ):
         # Questionnaire doesnt exist
@@ -717,17 +717,17 @@ class GooogleClutterDataloader(Dataset):
         bounding_data = None 
         poses = None
         
-        if load_bounds:
+        if load_bbox:
             # Semantic data is needed to calculate bounding data
             semantic_data = torch.zeros((1, len(object_names), self.w, self.h), dtype=torch.float64)
             bounding_data = torch.zeros((1, len(object_names), 4), dtype=torch.float64)
-        elif load_sem:
+        elif load_mask:
             semantic_data = torch.zeros((1, len(object_names), self.w, self.h), dtype=torch.float64)
             
         poses = torch.zeros((1, len(object_names), 4, 4)) if load_pose else None
         
         for i in range(len(object_names)):
-            if load_sem or load_bounds:
+            if load_mask or load_bbox:
                 # Loads segmentation label
                 semantic_rgb_label = read_image(seg_file, ImageReadMode.RGB)
                 # Gets the palette index
@@ -741,7 +741,7 @@ class GooogleClutterDataloader(Dataset):
                 # Sets color matching index to 1
                 semantic_data[0,i, color_cond_idx] = 1
         
-            if load_bounds:
+            if load_bbox:
                 right, left, bottom, top = calculate_bound_box(semantic_data[0,i])
                 bounding_data[0, i] = torch.tensor([bottom, right, top - bottom, left - right])
         

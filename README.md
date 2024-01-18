@@ -20,8 +20,10 @@ Step-1. Download the FewSOL dataset from https://irvlutd.github.io/FewSOL/#data
 
 Step-2. Pass the extracted dataset directory path into the dataloader as shown in the following example
 
-## Example Usage
+## Usage
+### Example
 ```python
+import random
 from FewSOLDataLoader import load_fewsol_dataloader
 
  # Define the root directory
@@ -29,98 +31,51 @@ ROOT_DIR = os.getcwd()
 
 # Define the dataset root directory using the join_path function
 DATASET_ROOT_DIR = os.path.join(ROOT_DIR, 'FewSOL', 'data')
-
-# Log that the FewSOL dataloader is being loaded
-print('Loading FewSOL dataloader')
      
-test = load_fewsol_dataloader(DATASET_ROOT_DIR, split="real_objects")    
+data = load_fewsol_dataloader(DATASET_ROOT_DIR, split="real_objects")    
 
 # Generate a random index within the range of the dataloader's length
-idx = random.randint(0, len(test) - 1)
+idx = random.randint(0, len(data) - 1)
 
 # Retrieve data from the dataloader for the random index
-image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test[idx]
-
-# Bounds image helper
-# Functions supports 3D(color images) and 2D(no rgb axis)
-from FewSOLDataLoader.helpers import bound_img 
-bounded_img = bound_img(image_data[0],  bounding_data[0, rand_obj_idx])
-```
-
-### Getting indexs for a specfic class
-```python
-from FewSOLDataLoader import load_fewsol_dataloader
-
- # Define the root directory
-ROOT_DIR = os.getcwd()
-
-# Define the dataset root directory using the join_path function
-DATASET_ROOT_DIR = os.path.join(ROOT_DIR, 'FewSOL', 'data')
-
-# Log that the FewSOL dataloader is being loaded
-print('Loading FewSOL dataloader')
-     
-test = load_fewsol_dataloader(DATASET_ROOT_DIR, split="real_objects")    
-
-# Gets the list of indexs for that contains a specific class
-class_idxs = test.get_class_idx("bowl")
-
-# Selects a random index out of class idxs
-rand_class_idx = class_idxs[random.randint(0, len(class_idxs) - 1)]
-    
-# Retrieve data from the dataloader for the random index
-image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test[rand_class_idx]
-
-# Bounds image helper
-# Functions supports 3D(color images) and 2D(no rgb axis)
-from FewSOLDataLoader.helpers import bound_img 
-bounded_img = bound_img(image_data[0],  bounding_data[0, rand_obj_idx])
+image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = data[idx]
 ```
 
 ### Loading Specfic Data in order to speed up the dataloader
 ```python
-from FewSOLDataLoader import load_fewsol_dataloader
-
- # Define the root directory
-ROOT_DIR = os.getcwd()
-
-# Define the dataset root directory using the join_path function
-DATASET_ROOT_DIR = os.path.join(ROOT_DIR, 'FewSOL', 'data')
-
-# Log that the FewSOL dataloader is being loaded
-print('Loading FewSOL dataloader')
-     
-test = load_fewsol_dataloader(DATASET_ROOT_DIR, split="real_objects")    
-
-# Gets the list of indexs for that contains a specific class
-idx = random.randint(0, len(test) - 1)
-    
 # Retrieve data from the dataloader for the random index
-# Default loads all data
-# Data not loaded will be None
-image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = test.get_idx(
+# Default loads all data, Data not loaded will be None
+image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses = data.get_idx(
     idx,
     load_img=False,
-    load_sem=True,
-    load_bounds=True,
+    load_mask=True,
+    load_bbox=True,
     load_label=False,
-    load_quest=False,
+    load_que=False,
     load_pose=False,
 )
+```
 
-# Bounds image helper
+### Getting indexs for a specfic class
+```python
+# Gets the list of indexs for that contains a specific class
+class_idxs = data.get_class_idx("bowl")
+```
+
+### Crop desired object using bbox data
+```python
 # Functions supports 3D(color images) and 2D(no rgb axis)
-from FewSOLDataLoader.helpers import bound_img 
-bounded_img = bound_img(image_data[0],  bounding_data[0, rand_obj_idx])
+from FewSOLDataLoader.helpers import crop_img_using_bbox 
+cropped_img = crop_img_using_bbox(image_data[0],  bounding_data[0, rand_obj_idx])
 ```
 
 ## Data Formats
 
 - Image Data Shape
     ```
-    # n x q x w x h
+    # n x c x w x h
     # n = Number of total images
-    # q = 3 : Color slots for RGB
+    # c = Number of Channels (RGB)
     # w = Width of the Image
     # h = Height of the image
     ```
