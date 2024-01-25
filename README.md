@@ -39,6 +39,11 @@ rand_idx = random.randint(0, len(data) - 1)
 
 # Retrieve data from the dataloader for the random index
 image_data, mask_data, bbox_data, label, questionnaire, file_name, poses = data[rand_idx]
+
+# Synthetic objects and Real objects split also has a depth functionality
+if s in ['synthetic_objects','real_objects']:
+    depth = test.get_depth(rand_idx)
+    print("Depth shape:", depth.shape)
 ```
 
 ### Loading Specfic Data in order to speed up the dataloader

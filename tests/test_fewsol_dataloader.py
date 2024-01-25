@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from src.FewSOLDataLoader import (
     load_fewsol_dataloader
 )
-from src.FewSOLDataLoader.helpers import bound_img 
+from src.FewSOLDataLoader.helpers import crop_obj_using_bbox 
 
 """Test FewSOl dataloader."""
 def main():
@@ -65,8 +65,11 @@ def test_split(s):
     )
     """
     
-    print(image_data, semantic_data, bounding_data, label, questionnaire, file_name, poses)
-    return
+    
+    if s in ['synthetic_objects','real_objects']:
+        depth = test.get_depth(idx)
+        print("Depth shape:", depth.shape)
+
     
     # Picks a random object index in the image
     rand_obj_idx = random.randint(0, len(label) - 1)
@@ -111,7 +114,7 @@ def test_split(s):
     axs[0, 1].axis('off')
 
     # Extract and plot the bounded image on the third subplot
-    bounded_img = np.moveaxis(bound_img(image_data[0],  bounding_data[0, rand_obj_idx]),0, -1)
+    bounded_img = np.moveaxis(crop_obj_using_bbox(image_data[0],  bounding_data[0, rand_obj_idx]),0, -1)
     print("Bounds shape:",bounded_img.shape)
     
     axs[1, 0].imshow(bounded_img)

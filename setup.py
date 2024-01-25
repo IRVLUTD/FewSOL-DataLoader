@@ -5,7 +5,7 @@ with open("README.md", "r", encoding = "utf-8") as fh:
 
 setuptools.setup(
     name = "FewSOLDataLoader",
-    version = "0.0.13",
+    version = "0.0.14",
     author = "Jesse Musa, Jishnu P",
     author_email = "jesse.musa@utdallas.edu, jishnu.p@utdallas.edu",
     description = "Pytorch Dataloader for FewSOL",
@@ -20,6 +20,6 @@ setuptools.setup(
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
     python_requires = ">=3.0",
-    install_requires=['matplotlib', 'numpy', 'torch', 'torchvision', 'scipy', 'pyyaml', 'easydict', 'transforms3d'],
+    install_requires=['matplotlib', 'numpy', 'torch', 'torchvision', 'scipy', 'pyyaml', 'easydict', 'transforms3d', 'opencv-python'],
     package_data={'FewSOLDataLoader': ['syn_google_scenes_data_mapper.json', 'file_class_mapper.json']}
 )

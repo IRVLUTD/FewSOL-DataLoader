@@ -8,6 +8,7 @@ from torch.utils.data import Dataset
 import scipy.io as scp
 import json
 import time
+import cv2
 
 from .SingleRealPose import compute_marker_board_center
 
@@ -191,12 +192,24 @@ class FewSOLDataloader(Dataset):
                 poses[0] = torch.Tensor(mat_data["center"])  
 
         return img_data, semantic_data, bounding_data, label, questionnaire, color_file_name, poses
+    
+    # Outputs (n, h, w) depth torch tensor
+    def get_depth(self, idx):
+        depth_img_name = self._getDepthImgFromIdx(idx)
+        
+        image = torch.tensor(cv2.imread(depth_img_name)).permute(2,0,1)
+        
+        return image[0].unsqueeze(0)
+    
 
     def _getColorFromIdx(self, idx: int):
         return f"{self.objects[idx]}-color.jpg"
 
     def _getLabelImgFromIdx(self, idx: int):
         return f"{self.objects[idx]}-label-binary.png"
+    
+    def _getDepthImgFromIdx(self, idx: int):
+        return f"{self.objects[idx]}-depth.png"
 
     def _getMatFromIdx(self, idx: int):
         return f"{self.objects[idx]}-meta.mat"
@@ -205,6 +218,8 @@ class FewSOLDataloader(Dataset):
     def _getInfoFromIdx(self, idx: int):
         folder = self.objects[idx][:-6]
         return  folder + LABEL_FILE_NAME, folder + QUESTIONNAIRE_FILE_NAME
+    
+    
     
         
     
